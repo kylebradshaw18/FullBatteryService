@@ -5,9 +5,17 @@ $APP_ID = '110366bd-56e2-47ed-9bdf-3ce1fa408b6c'
 #0 = Nothing, 1 = Low, 2 = High
 $LastEvent = 0
 $ConsecutiveExecutions = 0
-$MaxExecutions = 3
+$MaxExecutions = 2
 $Max = 99
 $Min = 20
+
+function Compare-Values($ShouldBe){
+	if(-NOT ($script:LastEvent -eq $ShouldBe)){
+		$script:LastEvent = $ShouldBe
+		$script:ConsecutiveExecutions = 0
+	}
+}
+
 function Get-Template($Empty){
 	$template = "<toast><visual><binding template=`"ToastText02`"><text id=`"1`">Battery "
 	if($Empty -eq $TRUE){
@@ -19,21 +27,15 @@ function Get-Template($Empty){
 
 	#rem check if we should return the template for the notification
 	if($Empty -eq $TRUE){
-		if(-NOT ($LastEvent -eq 1){
-			$LastEvent = 1
-			$ConsecutiveExecutions = 0
-		}
+		Compare-Values 1
 	} else {
-		if(-NOT ($LastEvent -eq 2){
-			$LastEvent = 2
-			$ConsecutiveExecutions = 0
-		}
+		Compare-Values 2
 	}
-	$ConsecutiveExecutions = $ConsecutiveExecutions + 1
-	if ($ConsecutiveExecutions -gt $MaxExecutions){
+	if ($script:ConsecutiveExecutions -gt $script:MaxExecutions){
 		$template = $NULL
+	} else {
+		$script:ConsecutiveExecutions++
 	}
-
 	$template
 }
 
@@ -42,7 +44,7 @@ while($TRUE)
 	$colItems = get-wmiobject -class "Win32_Battery"
 	$MessageTemplate = $NULL
 	#Not on charger so check if we are low to send notification
-	if ((-NOT ($colItems.BatteryStatus -eq 2)) -And ($colItems.EstimatedChargeRemaining -le $Min){
+	if ((-NOT ($colItems.BatteryStatus -eq 2)) -And ($colItems.EstimatedChargeRemaining -le $Min)){
 		$MessageTemplate = Get-Template $TRUE
 	} elseif(($colItems.BatteryStatus -eq 2) -And ($colItems.EstimatedChargeRemaining -ge $Max)){
 		$MessageTemplate = Get-Template $FALSE
