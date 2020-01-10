@@ -30,7 +30,7 @@ function Get-Template($Empty){
 		}
 	}
 	$ConsecutiveExecutions = $ConsecutiveExecutions + 1
-	if ($ConsecutiveExecutions -gl $MaxExecutions){
+	if ($ConsecutiveExecutions -gt $MaxExecutions){
 		$template = $NULL
 	}
 
